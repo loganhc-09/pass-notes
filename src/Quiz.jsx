@@ -164,7 +164,7 @@ function Quiz() {
 
             <div className="p-8 -mt-8 relative">
               <div className="flex items-center justify-center gap-2 mb-3">
-                <img src="/brainstorm-logo.png" alt="Br(ai)nstorm Collective" className="w-8 h-8 rounded-full object-cover" />
+                <img src={`${import.meta.env.BASE_URL}brainstorm-logo.png`} alt="Br(ai)nstorm Collective" className="w-8 h-8 rounded-full object-cover" />
                 <span className="text-xs text-[#1B6B6B] font-medium tracking-wide">Br(ai)nstorm Collective</span>
               </div>
               <h1 className="text-3xl font-bold text-[#1B3A5C] text-center mb-2">
@@ -427,7 +427,7 @@ function Quiz() {
         <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
           {/* Logo */}
           <div className={`mb-5 transition-all duration-500 ${showNote ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-            <img src="/brainstorm-logo.png" alt="Br(ai)nstorm Collective" className="w-20 h-20 mx-auto rounded-full object-cover shadow-lg" />
+            <img src={`${import.meta.env.BASE_URL}brainstorm-logo.png`} alt="Br(ai)nstorm Collective" className="w-20 h-20 mx-auto rounded-full object-cover shadow-lg" />
           </div>
 
           <h2 className={`text-3xl font-bold text-[#1B3A5C] mb-4 transition-all duration-500 delay-100 ${showNote ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
