@@ -3,66 +3,80 @@ import { supabase } from './lib/supabase'
 
 const LUCY_GIF = 'https://media1.tenor.com/m/LoHebi2GhbkAAAAC/i-love-lucy-lucille-ball.gif'
 
+const CHANNELS = [
+  { id: 'tiktok', label: 'TikTok', emoji: '🎵' },
+  { id: 'linkedin', label: 'LinkedIn', emoji: '💼' },
+  { id: 'substack', label: 'Substack / Newsletters', emoji: '📧' },
+  { id: 'youtube', label: 'YouTube', emoji: '📺' },
+  { id: 'podcasts', label: 'Podcasts', emoji: '🎧' },
+  { id: 'x', label: 'X / Twitter', emoji: '𝕏' },
+  { id: 'group', label: 'This group chat', emoji: '💬' },
+  { id: 'word_of_mouth', label: 'Word of mouth', emoji: '🗣️' },
+]
+
+const PULSE_OPTIONS = [
+  { id: 'drowning', label: 'Drowning', emoji: '🌊', desc: 'There is SO much and I can\'t keep up' },
+  { id: 'treading', label: 'Treading water', emoji: '🏊', desc: 'I catch some things but miss a lot' },
+  { id: 'riding', label: 'Riding the wave', emoji: '🏄', desc: 'I\'ve got a decent system going' },
+  { id: 'am_the_wave', label: 'I AM the wave', emoji: '🌊✨', desc: 'I\'m usually the one sharing stuff' },
+]
+
 function Quiz() {
   const [step, setStep] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showNote, setShowNote] = useState(false)
 
+  // New flow:
+  // 0=opener, 1=name, 2=pulse, 3=channels, 4=sources per channel, 5=artifact, 6=open box, 7=confirmation
   const [formData, setFormData] = useState({
     name: '',
-    sources: [
-      { name: '', channel: '', why: '', paid: false },
-      { name: '', channel: '', why: '', paid: false },
-      { name: '', channel: '', why: '', paid: false },
-      { name: '', channel: '', why: '', paid: false },
-      { name: '', channel: '', why: '', paid: false },
-    ],
+    pulse: '',
+    channels: [], // ordered list of selected channel ids
+    channelSources: {}, // { channelId: [{ name: '', paid: false }, ...] }
     artifact: { title: '', link: '' },
-    theOne: { name: '', channel: '' }
+    openBox: '',
   })
-
-  const updateSource = (index, field, value) => {
-    setFormData(prev => {
-      const newSources = [...prev.sources]
-      newSources[index] = { ...newSources[index], [field]: value }
-      return { ...prev, sources: newSources }
-    })
-  }
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
 
-    const validSources = formData.sources.filter(c => c.name.trim())
+    // Insert sources per channel
+    for (const channelId of formData.channels) {
+      const sources = formData.channelSources[channelId] || []
+      const channel = CHANNELS.find(c => c.id === channelId)
+      for (const source of sources) {
+        if (!source.name.trim()) continue
+        const { error } = await supabase.from('sources').insert({
+          name: source.name,
+          handle: source.name.toLowerCase().replace(/\s+/g, ''),
+          platform: 'Other',
+          modality: 'read',
+          url: '',
+          added_by_id: null,
+          added_by_name: formData.name || 'Anonymous',
+          blurb: `📍 ${channel?.label || channelId}${source.paid ? ' (paid)' : ''}`,
+          urgency: 'this_week'
+        })
+        if (error) console.error('Source insert error:', error)
+      }
+    }
 
-    for (const source of validSources) {
-      const { error } = await supabase.from('sources').insert({
-        name: source.name,
-        handle: source.channel || source.name.toLowerCase().replace(/\s+/g, ''),
+    // Insert pulse check
+    if (formData.pulse) {
+      await supabase.from('sources').insert({
+        name: `Pulse: ${formData.pulse}`,
+        handle: 'pulse-check',
         platform: 'Other',
         modality: 'read',
         url: '',
         added_by_id: null,
         added_by_name: formData.name || 'Anonymous',
-        blurb: source.why || null,
+        blurb: `🫀 Pulse check: ${formData.pulse} | Channels: ${formData.channels.join(', ')}`,
         urgency: 'this_week'
       })
-      if (error) console.error('Source insert error:', error)
     }
 
-    if (formData.theOne.name.trim()) {
-      await supabase.from('sources').insert({
-        name: formData.theOne.name,
-        handle: formData.theOne.channel || formData.theOne.name.toLowerCase().replace(/\s+/g, ''),
-        platform: formData.theOne.channel || 'Other',
-        modality: 'read',
-        url: '',
-        added_by_id: null,
-        added_by_name: formData.name || 'Anonymous',
-        blurb: '⭐ The One - if I could only follow one',
-        urgency: 'drop_everything'
-      })
-    }
-
+    // Insert artifact
     if (formData.artifact.title.trim()) {
       await supabase.from('sources').insert({
         name: formData.artifact.title,
@@ -77,24 +91,46 @@ function Quiz() {
       })
     }
 
+    // Insert open box
+    if (formData.openBox.trim()) {
+      await supabase.from('sources').insert({
+        name: `Open note from ${formData.name || 'Anonymous'}`,
+        handle: 'open-box',
+        platform: 'Other',
+        modality: 'read',
+        url: '',
+        added_by_id: null,
+        added_by_name: formData.name || 'Anonymous',
+        blurb: `💬 ${formData.openBox}`,
+        urgency: 'this_week'
+      })
+    }
+
     setIsSubmitting(false)
     setShowNote(true)
-    setTimeout(() => setStep(5), 500)
+    setTimeout(() => setStep(7), 500)
   }
 
   const canProceed = () => {
     switch(step) {
       case 0: return true
       case 1: return formData.name.trim().length > 0
-      case 2: return formData.sources.filter(c => c.name.trim()).length >= 1
-      case 3: return true
-      case 4: return formData.theOne.name.trim().length > 0
+      case 2: return !!formData.pulse
+      case 3: return formData.channels.length >= 1
+      case 4: {
+        // At least one source name across all channels
+        return Object.values(formData.channelSources).some(
+          sources => sources.some(s => s.name.trim())
+        )
+      }
+      case 5: return true // artifact is optional
+      case 6: return true // open box is optional
       default: return true
     }
   }
 
   const nextStep = () => {
-    if (step === 4) {
+    if (step === 6) {
       handleSubmit()
     } else {
       setStep(step + 1)
@@ -106,16 +142,50 @@ function Quiz() {
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && canProceed() && step !== 2) {
+    if (e.key === 'Enter' && canProceed() && step !== 4) {
       e.preventDefault()
       nextStep()
     }
   }
 
-  // 5 steps now: 0=opener, 1=name, 2=sources, 3=artifact, 4=theOne, 5=done
+  const toggleChannel = (channelId) => {
+    setFormData(prev => {
+      const existing = prev.channels
+      let newChannels
+      if (existing.includes(channelId)) {
+        newChannels = existing.filter(c => c !== channelId)
+      } else {
+        newChannels = [...existing, channelId]
+      }
+      // Initialize sources for newly added channels
+      const newChannelSources = { ...prev.channelSources }
+      for (const id of newChannels) {
+        if (!newChannelSources[id]) {
+          newChannelSources[id] = [
+            { name: '', paid: false },
+            { name: '', paid: false },
+            { name: '', paid: false },
+          ]
+        }
+      }
+      return { ...prev, channels: newChannels, channelSources: newChannelSources }
+    })
+  }
+
+  const updateChannelSource = (channelId, index, field, value) => {
+    setFormData(prev => {
+      const newChannelSources = { ...prev.channelSources }
+      const sources = [...(newChannelSources[channelId] || [])]
+      sources[index] = { ...sources[index], [field]: value }
+      newChannelSources[channelId] = sources
+      return { ...prev, channelSources: newChannelSources }
+    })
+  }
+
+  const TOTAL_STEPS = 6 // name, pulse, channels, sources, artifact, open box
   const ProgressDots = () => (
     <div className="flex gap-2 justify-center mb-6">
-      {[1, 2, 3, 4].map(i => (
+      {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(i => (
         <div
           key={i}
           className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -147,7 +217,7 @@ function Quiz() {
     </button>
   )
 
-  // Step 0: Combined opener - Lucy GIF + problem + branding + CTA
+  // Step 0: Opener
   if (step === 0) {
     return (
       <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6">
@@ -230,16 +300,116 @@ function Quiz() {
     )
   }
 
-  // Step 2: 5 Sources
+  // Step 2: Pulse check
   if (step === 2) {
-    const whyPrompts = [
-      "What's the vibe?",
-      "In 3 words...",
-      "Why do you love it?",
-      "Sell me on it",
-      "What keeps you coming back?"
-    ]
+    return (
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+        <BackButton />
+        <ProgressDots />
 
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+            <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
+              How are you keeping up with AI right now?
+            </h2>
+            <p className="text-stone-500 text-center mb-6">
+              No wrong answers. Just a vibe check.
+            </p>
+
+            <div className="space-y-3">
+              {PULSE_OPTIONS.map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setFormData({ ...formData, pulse: opt.id })}
+                  className={`w-full text-left p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                    formData.pulse === opt.id
+                      ? 'border-[#E07B54] bg-[#E07B54]/5 shadow-md'
+                      : 'border-stone-100 bg-stone-50 hover:border-stone-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{opt.emoji}</span>
+                    <div>
+                      <p className={`font-semibold ${formData.pulse === opt.id ? 'text-[#E07B54]' : 'text-stone-700'}`}>
+                        {opt.label}
+                      </p>
+                      <p className="text-stone-400 text-sm">{opt.desc}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <PrimaryButton onClick={nextStep} disabled={!canProceed()}>
+                Next
+                <span className="ml-2">→</span>
+              </PrimaryButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 3: Channel selection
+  if (step === 3) {
+    return (
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+        <BackButton />
+        <ProgressDots />
+
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+            <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
+              Where do you get your AI info?
+            </h2>
+            <p className="text-stone-500 text-center mb-6">
+              Pick all that apply. We'll ask about each one next.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              {CHANNELS.map(ch => {
+                const selected = formData.channels.includes(ch.id)
+                const orderIndex = formData.channels.indexOf(ch.id)
+                return (
+                  <button
+                    key={ch.id}
+                    onClick={() => toggleChannel(ch.id)}
+                    className={`relative p-4 rounded-2xl border-2 transition-all cursor-pointer text-left ${
+                      selected
+                        ? 'border-[#1B6B6B] bg-[#1B6B6B]/5 shadow-md'
+                        : 'border-stone-100 bg-stone-50 hover:border-stone-200'
+                    }`}
+                  >
+                    {selected && (
+                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1B6B6B] text-white text-xs flex items-center justify-center font-bold">
+                        {orderIndex + 1}
+                      </span>
+                    )}
+                    <span className="text-xl block mb-1">{ch.emoji}</span>
+                    <span className={`text-sm font-medium ${selected ? 'text-[#1B6B6B]' : 'text-stone-600'}`}>
+                      {ch.label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="mt-6">
+              <PrimaryButton onClick={nextStep} disabled={!canProceed()}>
+                Next
+                <span className="ml-2">→</span>
+              </PrimaryButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 4: Sources per channel
+  if (step === 4) {
     return (
       <div className="min-h-screen bg-[#FDF6E3] flex flex-col p-6 relative">
         <BackButton />
@@ -251,64 +421,52 @@ function Quiz() {
         <div className="max-w-lg w-full mx-auto flex-1 overflow-y-auto">
           <div className="text-center mb-4">
             <h2 className="text-2xl font-bold text-stone-800 mb-2">
-              Last 5 sources you've recommended to someone
+              Who do you trust on each?
             </h2>
             <p className="text-stone-400 text-sm">
-              e.g. <span className="text-stone-500 italic">Nate Jones</span> on <span className="text-stone-500 italic">Substack</span>
+              People, newsletters, accounts — whatever comes to mind. Leave blank if nothing specific.
             </p>
           </div>
 
-          <div className="space-y-3">
-            {formData.sources.map((source, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl p-4 shadow-lg shadow-stone-900/5 border border-stone-100"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full bg-[#F5C04A]/30 text-[#1B3A5C] flex items-center justify-center font-bold text-xs flex-shrink-0">
-                    {i + 1}
-                  </span>
-                  <input
-                    type="text"
-                    value={source.name}
-                    onChange={(e) => updateSource(i, 'name', e.target.value)}
-                    placeholder="Name"
-                    onKeyDown={handleKeyDown}
-                    className="flex-1 px-3 py-3 bg-stone-50 rounded-xl text-stone-800 placeholder-stone-300 focus:outline-none focus:bg-stone-100 focus:ring-2 focus:ring-amber-200 transition-all min-w-0 text-sm"
-                  />
-                  <input
-                    type="text"
-                    value={source.channel}
-                    onChange={(e) => updateSource(i, 'channel', e.target.value)}
-                    placeholder="Channel"
-                    onKeyDown={handleKeyDown}
-                    className="w-24 px-2 py-3 bg-stone-50 rounded-xl text-stone-600 placeholder-stone-300 text-xs focus:outline-none focus:bg-stone-100 focus:ring-2 focus:ring-amber-200 transition-all text-center"
-                  />
-                </div>
-                {source.name.trim() && (
-                  <div className="mt-3 ml-11 flex items-center gap-3">
-                    <input
-                      type="text"
-                      value={source.why}
-                      onChange={(e) => updateSource(i, 'why', e.target.value)}
-                      placeholder={whyPrompts[i]}
-                      className="flex-1 px-4 py-2.5 bg-stone-50/50 rounded-xl text-stone-600 placeholder-stone-400 text-sm focus:outline-none focus:bg-stone-100 transition-all italic"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => updateSource(i, 'paid', !source.paid)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all flex-shrink-0 cursor-pointer ${
-                        source.paid
-                          ? 'bg-[#1B6B6B]/10 text-[#1B6B6B] border border-[#1B6B6B]/30'
-                          : 'bg-stone-50 text-stone-400 border border-stone-200 hover:border-stone-300'
-                      }`}
-                    >
-                      {source.paid ? '✓' : '○'} Paid
-                    </button>
+          <div className="space-y-5">
+            {formData.channels.map(channelId => {
+              const channel = CHANNELS.find(c => c.id === channelId)
+              const sources = formData.channelSources[channelId] || []
+              return (
+                <div key={channelId} className="bg-white rounded-2xl p-5 shadow-lg shadow-stone-900/5 border border-stone-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-lg">{channel?.emoji}</span>
+                    <h3 className="font-semibold text-stone-700">{channel?.label}</h3>
                   </div>
-                )}
-              </div>
-            ))}
+                  <div className="space-y-2">
+                    {sources.map((source, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={source.name}
+                          onChange={(e) => updateChannelSource(channelId, i, 'name', e.target.value)}
+                          placeholder={i === 0 ? 'e.g. Nate Jones' : 'Another one...'}
+                          className="flex-1 px-3 py-3 bg-stone-50 rounded-xl text-stone-800 placeholder-stone-300 focus:outline-none focus:bg-stone-100 focus:ring-2 focus:ring-amber-200 transition-all text-sm"
+                        />
+                        {source.name.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => updateChannelSource(channelId, i, 'paid', !source.paid)}
+                            className={`flex items-center gap-1 px-2.5 py-2 rounded-xl text-xs font-medium transition-all flex-shrink-0 cursor-pointer ${
+                              source.paid
+                                ? 'bg-[#1B6B6B]/10 text-[#1B6B6B] border border-[#1B6B6B]/30'
+                                : 'bg-stone-50 text-stone-400 border border-stone-200 hover:border-stone-300'
+                            }`}
+                          >
+                            {source.paid ? '✓' : '○'} Paid
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           <div className="mt-6 mb-4">
@@ -322,8 +480,8 @@ function Quiz() {
     )
   }
 
-  // Step 3: Artifact
-  if (step === 3) {
+  // Step 5: Artifact
+  if (step === 5) {
     return (
       <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
         <BackButton />
@@ -372,8 +530,8 @@ function Quiz() {
     )
   }
 
-  // Step 4: The One
-  if (step === 4) {
+  // Step 6: Open box
+  if (step === 6) {
     return (
       <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
         <BackButton />
@@ -381,36 +539,24 @@ function Quiz() {
 
         <div className="max-w-md w-full">
           <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
-            <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center leading-tight">
-              If you got your AI news from ONE source for the next month...
+            <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
+              Anything else on your mind?
             </h2>
-            <p className="text-stone-500 text-center mb-8">
-              What survives the cull?
+            <p className="text-stone-500 text-center mb-6">
+              Topics you want the group to explore, tools you're curious about, things you're stuck on... anything goes.
             </p>
 
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-6 border-2 border-amber-200 space-y-3">
-              <input
-                type="text"
-                value={formData.theOne.name}
-                onChange={(e) => setFormData({ ...formData, theOne: { ...formData.theOne, name: e.target.value }})}
-                placeholder="Source name"
-                autoFocus
-                onKeyDown={handleKeyDown}
-                className="w-full px-5 py-4 bg-white rounded-xl text-stone-800 placeholder-stone-400 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all text-center"
-              />
-              <input
-                type="text"
-                value={formData.theOne.channel}
-                onChange={(e) => setFormData({ ...formData, theOne: { ...formData.theOne, channel: e.target.value }})}
-                placeholder="Where do you follow them?"
-                onKeyDown={handleKeyDown}
-                className="w-full px-4 py-3 bg-white/80 rounded-xl text-stone-600 placeholder-stone-400 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 transition-all text-center"
-              />
-            </div>
+            <textarea
+              value={formData.openBox}
+              onChange={(e) => setFormData({ ...formData, openBox: e.target.value })}
+              placeholder="What's been on your mind lately..."
+              rows={4}
+              className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl text-stone-800 placeholder-stone-300 focus:outline-none focus:border-amber-400 focus:bg-white transition-all resize-none"
+            />
 
             <div className="mt-8">
-              <PrimaryButton onClick={nextStep} disabled={!canProceed() || isSubmitting}>
-                {isSubmitting ? 'Sending...' : 'Pass my notes'}
+              <PrimaryButton onClick={nextStep} disabled={isSubmitting}>
+                {isSubmitting ? 'Sending...' : formData.openBox.trim() ? 'Pass my notes' : 'Skip & finish'}
                 <span className="ml-2">→</span>
               </PrimaryButton>
             </div>
@@ -420,7 +566,7 @@ function Quiz() {
     )
   }
 
-  // Step 5: Confirmation - with Br(ai)nstorm colors: coral #E07B54, teal #1B6B6B, navy #1B3A5C, yellow #F5C04A, cream #FDF6E3
+  // Step 7: Confirmation
   return (
     <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6">
       <div className="max-w-md w-full">
