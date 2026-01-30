@@ -284,7 +284,7 @@ function Quiz() {
   // Step 0: Opener
   if (step === 0) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6">
         <div className="max-w-md w-full">
           <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 overflow-hidden">
             <div className="relative">
@@ -296,7 +296,7 @@ function Quiz() {
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
             </div>
 
-            <div className="p-8 -mt-8 relative">
+            <div className="p-5 sm:p-8 -mt-8 relative">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <img src={`${import.meta.env.BASE_URL}brainstorm-logo.png`} alt="Br(ai)nstorm Collective" className="w-8 h-8 rounded-full object-cover" />
                 <span className="text-xs text-[#1B6B6B] font-medium tracking-wide">Br(ai)nstorm Collective</span>
@@ -329,12 +329,12 @@ function Quiz() {
   // Step 1: Name
   if (step === 1) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative">
         <BackButton />
         <ProgressDots />
 
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               What's your first name?
             </h2>
@@ -367,12 +367,12 @@ function Quiz() {
   // Step 2: Pulse check
   if (step === 2) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative">
         <BackButton />
         <ProgressDots />
 
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               How are you keeping up with AI right now?
             </h2>
@@ -419,12 +419,12 @@ function Quiz() {
   // Step 3: Channel selection
   if (step === 3) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center px-4 pt-16 pb-6 sm:p-6 sm:pt-16 relative overflow-y-auto">
         <BackButton />
         <ProgressDots />
 
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               Where do you get your AI info?
             </h2>
@@ -480,10 +480,10 @@ function Quiz() {
   // Step 4: Sources per channel
   if (step === 4) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col px-4 py-6 sm:p-6 relative">
         <BackButton />
 
-        <div className="pt-16 pb-4">
+        <div className="pt-12 sm:pt-16 pb-4">
           <ProgressDots />
         </div>
 
@@ -554,12 +554,12 @@ function Quiz() {
   // Step 5: Artifact
   if (step === 5) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative">
         <BackButton />
         <ProgressDots />
 
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               What's stuck with you lately?
             </h2>
@@ -624,12 +624,12 @@ function Quiz() {
   // Step 6: Open box
   if (step === 6) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative">
         <BackButton />
         <ProgressDots />
 
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               Last thing —
             </h2>
@@ -660,12 +660,12 @@ function Quiz() {
   // Step 7: Referral
   if (step === 7) {
     return (
-      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative">
         <BackButton />
         <ProgressDots />
 
         <div className="max-w-md w-full">
-          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-5 sm:p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               Know a badass?
             </h2>
@@ -714,9 +714,9 @@ function Quiz() {
 
   // Step 8: Confirmation
   return (
-    <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center px-4 py-6 sm:p-6">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
+        <div className="bg-white rounded-3xl shadow-2xl p-5 sm:p-8 text-center">
           {/* Logo */}
           <div className={`mb-5 transition-all duration-500 ${showNote ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
             <img src={`${import.meta.env.BASE_URL}brainstorm-logo.png`} alt="Br(ai)nstorm Collective" className="w-20 h-20 mx-auto rounded-full object-cover shadow-lg" />

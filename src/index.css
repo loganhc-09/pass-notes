@@ -3,4 +3,15 @@
 body {
   margin: 0;
   min-height: 100vh;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Prevent iOS zoom on input focus (requires 16px min) */
+input, textarea, select {
+  font-size: 16px !important;
+}
+
+/* Safe area for notched phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
