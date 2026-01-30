@@ -305,7 +305,7 @@ function Quiz() {
                 Pass Notes
               </h1>
               <p className="text-stone-500 text-center text-sm mb-6">
-                A 2-min pulse check on how you're keeping up with AI.
+                A 3-min pulse check on how you're keeping up with AI.
               </p>
 
               <button
