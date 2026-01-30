@@ -49,6 +49,7 @@ const CHANNELS = [
   { id: 'youtube', label: 'YouTube', emoji: '💬', hasIcon: true },
   { id: 'podcasts', label: 'Podcasts', emoji: '💬', hasIcon: true },
   { id: 'x', label: 'X / Twitter', emoji: '💬', hasIcon: true },
+  { id: 'communities', label: 'Private communities', emoji: '🔒', hasIcon: false },
   { id: 'group', label: 'This group chat', emoji: '💬', hasIcon: false },
   { id: 'word_of_mouth', label: 'Word of mouth', emoji: '🗣️', hasIcon: false },
 ]
@@ -72,7 +73,7 @@ function Quiz() {
     pulse: '',
     channels: [], // ordered list of selected channel ids
     channelSources: {}, // { channelId: [{ name: '', paid: false }, ...] }
-    artifact: { title: '', link: '' },
+    artifacts: [{ title: '', link: '' }],
     openBox: '',
   })
 
@@ -115,17 +116,18 @@ function Quiz() {
       })
     }
 
-    // Insert artifact
-    if (formData.artifact.title.trim()) {
+    // Insert artifacts
+    for (const artifact of formData.artifacts) {
+      if (!artifact.title.trim()) continue
       await supabase.from('sources').insert({
-        name: formData.artifact.title,
+        name: artifact.title,
         handle: 'artifact',
         platform: 'Other',
         modality: 'read',
-        url: formData.artifact.link || '',
+        url: artifact.link || '',
         added_by_id: null,
         added_by_name: formData.name || 'Anonymous',
-        blurb: '📄 AI artifact from the last 10 days',
+        blurb: '📄 Stuck with me lately',
         urgency: 'this_week'
       })
     }
@@ -500,7 +502,7 @@ function Quiz() {
                           placeholder={i === 0 ? 'e.g. Dr. Ayesha Khanna' : 'Another one...'}
                           className="flex-1 px-3 py-3 bg-stone-50 rounded-xl text-stone-800 placeholder-stone-300 focus:outline-none focus:bg-stone-100 focus:ring-2 focus:ring-amber-200 transition-all text-sm"
                         />
-                        {source.name.trim() && (
+                        {source.name.trim() && (channelId === 'substack' || channelId === 'communities') && (
                           <button
                             type="button"
                             onClick={() => updateChannelSource(channelId, i, 'paid', !source.paid)}
@@ -542,37 +544,57 @@ function Quiz() {
         <div className="max-w-md w-full">
           <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
-              One AI thing that's stuck with you
+              What's stuck with you lately?
             </h2>
-            <p className="text-stone-500 text-center mb-2">
-              From the last 10 days. Article, video, thread...
-            </p>
-            <p className="text-stone-400 text-center text-sm mb-8">
-              (I want to see what's cutting through the noise)
+            <p className="text-stone-500 text-center mb-8">
+              Anything you've read, watched, or listened to in the past 10 days that really stuck. Article, video, thread, podcast ep — whatever.
             </p>
 
-            <div className="space-y-4">
-              <input
-                type="text"
-                value={formData.artifact.title}
-                onChange={(e) => setFormData({ ...formData, artifact: { ...formData.artifact, title: e.target.value }})}
-                placeholder="Title or topic"
-                onKeyDown={handleKeyDown}
-                className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl text-stone-800 placeholder-stone-300 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
-              />
-              <input
-                type="text"
-                value={formData.artifact.link}
-                onChange={(e) => setFormData({ ...formData, artifact: { ...formData.artifact, link: e.target.value }})}
-                placeholder="Link if you have it"
-                onKeyDown={handleKeyDown}
-                className="w-full px-5 py-3 bg-stone-50/50 border border-stone-100 rounded-xl text-stone-600 placeholder-stone-300 text-sm focus:outline-none focus:border-amber-300 focus:bg-white transition-all"
-              />
+            <div className="space-y-5">
+              {formData.artifacts.map((artifact, i) => (
+                <div key={i} className="space-y-2">
+                  {i > 0 && <div className="border-t border-stone-100 pt-4" />}
+                  <input
+                    type="text"
+                    value={artifact.title}
+                    onChange={(e) => {
+                      const updated = [...formData.artifacts]
+                      updated[i] = { ...updated[i], title: e.target.value }
+                      setFormData({ ...formData, artifacts: updated })
+                    }}
+                    placeholder={i === 0 ? "Title or topic" : "Another one..."}
+                    onKeyDown={handleKeyDown}
+                    className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl text-stone-800 placeholder-stone-300 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
+                  />
+                  <input
+                    type="text"
+                    value={artifact.link}
+                    onChange={(e) => {
+                      const updated = [...formData.artifacts]
+                      updated[i] = { ...updated[i], link: e.target.value }
+                      setFormData({ ...formData, artifacts: updated })
+                    }}
+                    placeholder="Link if you have it"
+                    onKeyDown={handleKeyDown}
+                    className="w-full px-5 py-3 bg-stone-50/50 border border-stone-100 rounded-xl text-stone-600 placeholder-stone-300 text-sm focus:outline-none focus:border-amber-300 focus:bg-white transition-all"
+                  />
+                </div>
+              ))}
+
+              {formData.artifacts.length < 5 && formData.artifacts[formData.artifacts.length - 1]?.title.trim() && (
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, artifacts: [...formData.artifacts, { title: '', link: '' }] })}
+                  className="w-full py-3 text-sm text-[#1B6B6B] font-medium hover:text-[#145252] transition-colors cursor-pointer"
+                >
+                  + Add another
+                </button>
+              )}
             </div>
 
             <div className="mt-8">
               <PrimaryButton onClick={nextStep}>
-                {formData.artifact.title.trim() ? 'Next' : 'Skip'}
+                {formData.artifacts.some(a => a.title.trim()) ? 'Next' : 'Skip'}
                 <span className="ml-2">→</span>
               </PrimaryButton>
             </div>
