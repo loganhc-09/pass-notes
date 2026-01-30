@@ -3,15 +3,54 @@ import { supabase } from './lib/supabase'
 
 const LUCY_GIF = 'https://media1.tenor.com/m/LoHebi2GhbkAAAAC/i-love-lucy-lucille-ball.gif'
 
+const ChannelIcon = ({ id, className = "w-6 h-6" }) => {
+  const icons = {
+    tiktok: (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.75a8.18 8.18 0 0 0 4.76 1.52V6.84a4.84 4.84 0 0 1-1-.15z"/>
+      </svg>
+    ),
+    linkedin: (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+      </svg>
+    ),
+    substack: (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/>
+      </svg>
+    ),
+    youtube: (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+      </svg>
+    ),
+    podcasts: (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm0 3.6c4.636 0 8.4 3.764 8.4 8.4 0 1.572-.44 3.04-1.192 4.296l-1.536-1.536A6.002 6.002 0 0 0 18 12c0-3.312-2.688-6-6-6s-6 2.688-6 6a5.98 5.98 0 0 0 .336 1.968L4.8 15.504A8.352 8.352 0 0 1 3.6 12c0-4.636 3.764-8.4 8.4-8.4zm0 4.8a3.6 3.6 0 0 1 2.16 6.48l-.96-.96a2.398 2.398 0 0 0-2.4-2.4 2.4 2.4 0 0 0-2.4 2.4c0 .456.132.876.348 1.236l-.948.948A3.6 3.6 0 0 1 12 8.4zm0 2.4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm-1.2 4.8h2.4V24h-2.4v-8.4z"/>
+      </svg>
+    ),
+    x: (
+      <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    ),
+    group: null,
+    word_of_mouth: null,
+  }
+  if (!icons[id]) return null
+  return icons[id]
+}
+
 const CHANNELS = [
-  { id: 'tiktok', label: 'TikTok', emoji: '🎵' },
-  { id: 'linkedin', label: 'LinkedIn', emoji: '💼' },
-  { id: 'substack', label: 'Substack / Newsletters', emoji: '📧' },
-  { id: 'youtube', label: 'YouTube', emoji: '📺' },
-  { id: 'podcasts', label: 'Podcasts', emoji: '🎧' },
-  { id: 'x', label: 'X / Twitter', emoji: '𝕏' },
-  { id: 'group', label: 'This group chat', emoji: '💬' },
-  { id: 'word_of_mouth', label: 'Word of mouth', emoji: '🗣️' },
+  { id: 'tiktok', label: 'TikTok', emoji: '💬', hasIcon: true },
+  { id: 'linkedin', label: 'LinkedIn', emoji: '💬', hasIcon: true },
+  { id: 'substack', label: 'Substack / Newsletters', emoji: '💬', hasIcon: true },
+  { id: 'youtube', label: 'YouTube', emoji: '💬', hasIcon: true },
+  { id: 'podcasts', label: 'Podcasts', emoji: '💬', hasIcon: true },
+  { id: 'x', label: 'X / Twitter', emoji: '💬', hasIcon: true },
+  { id: 'group', label: 'This group chat', emoji: '💬', hasIcon: false },
+  { id: 'word_of_mouth', label: 'Word of mouth', emoji: '🗣️', hasIcon: false },
 ]
 
 const PULSE_OPTIONS = [
@@ -54,7 +93,7 @@ function Quiz() {
           url: '',
           added_by_id: null,
           added_by_name: formData.name || 'Anonymous',
-          blurb: `📍 ${channel?.label || channelId}${source.paid ? ' (paid)' : ''}`,
+          blurb: `📍 #${formData.channels.indexOf(channelId) + 1} ${channel?.label || channelId}${source.paid ? ' (paid)' : ''}`,
           urgency: 'this_week'
         })
         if (error) console.error('Source insert error:', error)
@@ -118,9 +157,11 @@ function Quiz() {
       case 2: return !!formData.pulse
       case 3: return formData.channels.length >= 1
       case 4: {
-        // At least one source name across all channels
-        return Object.values(formData.channelSources).some(
-          sources => sources.some(s => s.name.trim())
+        // If they only picked group/word_of_mouth, no sources needed
+        const sourceChannels = formData.channels.filter(id => id !== 'group' && id !== 'word_of_mouth')
+        if (sourceChannels.length === 0) return true
+        return sourceChannels.some(
+          id => (formData.channelSources[id] || []).some(s => s.name.trim())
         )
       }
       case 5: return true // artifact is optional
@@ -132,6 +173,10 @@ function Quiz() {
   const nextStep = () => {
     if (step === 6) {
       handleSubmit()
+    } else if (step === 3) {
+      // Skip sources step if only group/word_of_mouth selected
+      const sourceChannels = formData.channels.filter(id => id !== 'group' && id !== 'word_of_mouth')
+      setStep(sourceChannels.length > 0 ? 4 : 5)
     } else {
       setStep(step + 1)
     }
@@ -241,7 +286,7 @@ function Quiz() {
                 Pass Notes
               </h1>
               <p className="text-stone-500 text-center text-sm mb-6">
-                Takes 2 min. Stay tuned.
+                A 2-min pulse check on how you're keeping up with AI.
               </p>
 
               <button
@@ -253,7 +298,7 @@ function Quiz() {
               </button>
 
               <p className="text-stone-400 text-xs text-center mt-4">
-                Crowdsourcing the highest-signal AI content so nobody has to find it alone.
+                I'm crowdsourcing the highest-signal AI content so nobody has to find it alone.
               </p>
             </div>
           </div>
@@ -364,8 +409,11 @@ function Quiz() {
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
               Where do you get your AI info?
             </h2>
-            <p className="text-stone-500 text-center mb-6">
-              Pick all that apply. We'll ask about each one next.
+            <p className="text-stone-500 text-center mb-2">
+              Tap in order of most → least valuable to you.
+            </p>
+            <p className="text-stone-400 text-center text-xs mb-6">
+              Tap again to remove. Skip channels you never check.
             </p>
 
             <div className="grid grid-cols-2 gap-3">
@@ -387,7 +435,9 @@ function Quiz() {
                         {orderIndex + 1}
                       </span>
                     )}
-                    <span className="text-xl block mb-1">{ch.emoji}</span>
+                    <span className="text-xl block mb-1">
+                      {ch.hasIcon ? <ChannelIcon id={ch.id} className={`w-6 h-6 ${selected ? 'text-[#1B6B6B]' : 'text-stone-400'}`} /> : ch.emoji}
+                    </span>
                     <span className={`text-sm font-medium ${selected ? 'text-[#1B6B6B]' : 'text-stone-600'}`}>
                       {ch.label}
                     </span>
@@ -429,13 +479,15 @@ function Quiz() {
           </div>
 
           <div className="space-y-5">
-            {formData.channels.map(channelId => {
+            {formData.channels.filter(id => id !== 'group' && id !== 'word_of_mouth').map(channelId => {
               const channel = CHANNELS.find(c => c.id === channelId)
               const sources = formData.channelSources[channelId] || []
               return (
                 <div key={channelId} className="bg-white rounded-2xl p-5 shadow-lg shadow-stone-900/5 border border-stone-100">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg">{channel?.emoji}</span>
+                    <span className="text-lg">
+                      {channel?.hasIcon ? <ChannelIcon id={channelId} className="w-5 h-5 text-stone-500" /> : channel?.emoji}
+                    </span>
                     <h3 className="font-semibold text-stone-700">{channel?.label}</h3>
                   </div>
                   <div className="space-y-2">
@@ -445,7 +497,7 @@ function Quiz() {
                           type="text"
                           value={source.name}
                           onChange={(e) => updateChannelSource(channelId, i, 'name', e.target.value)}
-                          placeholder={i === 0 ? 'e.g. Nate Jones' : 'Another one...'}
+                          placeholder={i === 0 ? 'e.g. Dr. Ayesha Khanna' : 'Another one...'}
                           className="flex-1 px-3 py-3 bg-stone-50 rounded-xl text-stone-800 placeholder-stone-300 focus:outline-none focus:bg-stone-100 focus:ring-2 focus:ring-amber-200 transition-all text-sm"
                         />
                         {source.name.trim() && (
@@ -540,10 +592,10 @@ function Quiz() {
         <div className="max-w-md w-full">
           <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
             <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
-              Anything else on your mind?
+              Last thing —
             </h2>
             <p className="text-stone-500 text-center mb-6">
-              Topics you want the group to explore, tools you're curious about, things you're stuck on... anything goes.
+              This group is an ongoing experiment in collective learning. What do you want to see more of? Suggestions? Feedback? I'm all ears.
             </p>
 
             <textarea
