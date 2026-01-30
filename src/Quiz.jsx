@@ -58,6 +58,7 @@ const PULSE_OPTIONS = [
   { id: 'drowning', label: 'Drowning', emoji: '🌊', desc: 'There is SO much and I can\'t keep up' },
   { id: 'treading', label: 'Treading water', emoji: '🏊', desc: 'I catch some things but miss a lot' },
   { id: 'riding', label: 'Riding the wave', emoji: '🏄', desc: 'I\'ve got a decent system going' },
+  { id: 'firehose_focused', label: 'Firehose but focused', emoji: '🎯', desc: 'Way too much flying at me, but I know what matters' },
   { id: 'am_the_wave', label: 'I AM the wave', emoji: '🌊✨', desc: 'I\'m usually the one sharing stuff' },
 ]
 
