@@ -67,7 +67,7 @@ function Quiz() {
   const [showNote, setShowNote] = useState(false)
 
   // New flow:
-  // 0=opener, 1=name, 2=pulse, 3=channels, 4=sources per channel, 5=artifact, 6=open box, 7=confirmation
+  // 0=opener, 1=name, 2=pulse, 3=channels, 4=sources per channel, 5=artifact, 6=open box, 7=referral, 8=confirmation
   const [formData, setFormData] = useState({
     name: '',
     pulse: '',
@@ -75,6 +75,7 @@ function Quiz() {
     channelSources: {}, // { channelId: [{ name: '', paid: false }, ...] }
     artifacts: [{ title: '', link: '' }],
     openBox: '',
+    referral: { name: '', number: '', why: '' },
   })
 
   const handleSubmit = async () => {
@@ -147,9 +148,24 @@ function Quiz() {
       })
     }
 
+    // Insert referral
+    if (formData.referral.name.trim()) {
+      await supabase.from('sources').insert({
+        name: `Referral: ${formData.referral.name}`,
+        handle: 'referral',
+        platform: 'Other',
+        modality: 'read',
+        url: '',
+        added_by_id: null,
+        added_by_name: formData.name || 'Anonymous',
+        blurb: `🤝 ${formData.referral.name}${formData.referral.number ? ` | ${formData.referral.number}` : ''}${formData.referral.why ? ` | "${formData.referral.why}"` : ''}`,
+        urgency: 'this_week'
+      })
+    }
+
     setIsSubmitting(false)
     setShowNote(true)
-    setTimeout(() => setStep(7), 500)
+    setTimeout(() => setStep(8), 500)
   }
 
   const canProceed = () => {
@@ -168,12 +184,13 @@ function Quiz() {
       }
       case 5: return true // artifact is optional
       case 6: return true // open box is optional
+      case 7: return true // referral is optional
       default: return true
     }
   }
 
   const nextStep = () => {
-    if (step === 6) {
+    if (step === 7) {
       handleSubmit()
     } else if (step === 3) {
       // Skip sources step if only group/word_of_mouth selected
@@ -229,7 +246,7 @@ function Quiz() {
     })
   }
 
-  const TOTAL_STEPS = 6 // name, pulse, channels, sources, artifact, open box
+  const TOTAL_STEPS = 7 // name, pulse, channels, sources, artifact, open box, referral
   const ProgressDots = () => (
     <div className="flex gap-2 justify-center mb-6">
       {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(i => (
@@ -629,8 +646,8 @@ function Quiz() {
             />
 
             <div className="mt-8">
-              <PrimaryButton onClick={nextStep} disabled={isSubmitting}>
-                {isSubmitting ? 'Sending...' : formData.openBox.trim() ? 'Pass my notes' : 'Skip & finish'}
+              <PrimaryButton onClick={nextStep}>
+                Next
                 <span className="ml-2">→</span>
               </PrimaryButton>
             </div>
@@ -640,7 +657,62 @@ function Quiz() {
     )
   }
 
-  // Step 7: Confirmation
+  // Step 7: Referral
+  if (step === 7) {
+    return (
+      <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6 relative">
+        <BackButton />
+        <ProgressDots />
+
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-2xl shadow-amber-900/10 p-8">
+            <h2 className="text-2xl font-bold text-stone-800 mb-2 text-center">
+              Know a badass?
+            </h2>
+            <p className="text-stone-500 text-center mb-8">
+              This isn't the Logan-invite club. If you know someone totally badass — anywhere on the AI learning curve — who'd add the right vibes to this group, drop their info here and I'll add them.
+            </p>
+
+            <div className="space-y-4">
+              <input
+                type="text"
+                value={formData.referral.name}
+                onChange={(e) => setFormData({ ...formData, referral: { ...formData.referral, name: e.target.value }})}
+                placeholder="Their name"
+                onKeyDown={handleKeyDown}
+                className="w-full px-5 py-4 bg-stone-50 border-2 border-stone-100 rounded-2xl text-stone-800 placeholder-stone-300 focus:outline-none focus:border-amber-400 focus:bg-white transition-all"
+              />
+              <input
+                type="text"
+                value={formData.referral.number}
+                onChange={(e) => setFormData({ ...formData, referral: { ...formData.referral, number: e.target.value }})}
+                placeholder="Phone number"
+                onKeyDown={handleKeyDown}
+                className="w-full px-5 py-3 bg-stone-50/50 border border-stone-100 rounded-xl text-stone-600 placeholder-stone-300 text-sm focus:outline-none focus:border-amber-300 focus:bg-white transition-all"
+              />
+              <input
+                type="text"
+                value={formData.referral.why}
+                onChange={(e) => setFormData({ ...formData, referral: { ...formData.referral, why: e.target.value }})}
+                placeholder="Why they're a badass (optional)"
+                onKeyDown={handleKeyDown}
+                className="w-full px-5 py-3 bg-stone-50/50 border border-stone-100 rounded-xl text-stone-600 placeholder-stone-300 text-sm focus:outline-none focus:border-amber-300 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div className="mt-8">
+              <PrimaryButton onClick={nextStep} disabled={isSubmitting}>
+                {isSubmitting ? 'Sending...' : 'Pass my notes'}
+                <span className="ml-2">→</span>
+              </PrimaryButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Step 8: Confirmation
   return (
     <div className="min-h-screen bg-[#FDF6E3] flex flex-col items-center justify-center p-6">
       <div className="max-w-md w-full">
